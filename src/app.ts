@@ -1,5 +1,8 @@
 import express, {Application, Request, Response} from "express";
 import { PrismaClient } from '@prisma/client';
+import {} from 'dotenv/config';
+
+const PORT = process.env.__YOUR_PRISMA_SERVER_PORT__ || 3000;
 
 const app: Application = express();
 const prisma = new PrismaClient()
@@ -14,12 +17,12 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/api/users', async (req: Request, res: Response) => {
   try {
-    const newUser = await prisma.user.create({
-      data: {
-        name: 'Alice',
-        email: 'alice@prisma.io',
-      },
-    })
+    // const newUser = await prisma.user.create({
+    //   data: {
+    //     name: 'Alice',
+    //     email: 'alice@prisma.io',
+    //   },
+    // })
     
     const users = await prisma.user.findMany()
 
@@ -27,17 +30,16 @@ app.get('/api/users', async (req: Request, res: Response) => {
           success: true,
           data: users
       });
-  } catch (error) {
+  } catch (error: any) {
       return res.json({
           success: false,
-          message: error
+          error: error,
+          message: error.message
       });
   }
 });
 //#######################
 
-const port: number = 3000;
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Example app listening at http://localhost:${PORT}`);
 });

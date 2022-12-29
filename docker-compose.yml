@@ -1,48 +1,55 @@
 version: '3.8'
-
+networks:
+  postgres-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
 services:
   postgres:
-    image: postgres
+    image: postgres:10.3
+    container_name: postgres-docker
     restart: always
-    ports: 
-      - "5432:5432"
+    networks:
+      - postgres-network
     environment:
-      - DATABASE_HOST=127.0.0.1
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=root
+      - POSTGRES_USER=${__YOUR_DATABASE_USER__}
+      - POSTGRES_PASSWORD=${__YOUR_DATABASE_PASSWORD__}
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
-      PGADMIN_DEFAULT_PASSWORD: "admin"
+      - data-postgres:/var/lib/postgresql/data
     ports:
-      - "80:80"
-    depends_on:
-      - postgres
-  
-  app:
-    restart: on-failure
-    build:
-      context: .
+      - '${__YOUR_DATABASE_PORT__}:${__YOUR_DATABASE_PORT__}'
+    expose:
+      - '${__YOUR_DATABASE_PORT__}'
+  prisma:
+    container_name: dockerprisma
+    build: 
+      context: ./                   
       dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${__YOUR_PRISMA_SERVER_PORT__}:${__YOUR_PRISMA_SERVER_PORT__}
+    networks:
+      - postgres-network
+    command: >
+      bash -c '
+        npx prisma generate
+        npx prisma db push
+        yarn dev
+      '
     depends_on:
       - postgres
     environment:
-      NODE_ENV: development
-      DATABASE_URL: postgres://root:root@postgres:5432/db
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: postgres
-      PORT: 3000
-    ports:
-      - "3000:3000"
-    command: sh -c "yarn global add nodemon && yarn install && yarn dev"
-    volumes:
-      - .:/app/
-      - /app/node_modules
+      PRISMA_CONFIG: |
+        managementApiSecret: ${__YOUR_MANAGEMENT_API_SECRET__}
+        port: ${__YOUR_PRISMA_SERVER_PORT__}
+        databases:
+          default:
+            connector: ${__YOUR_DATABASE_CONNECTOR__}
+            host: ${__YOUR_DATABASE_HOST__}
+            port: ${__YOUR_DATABASE_PORT__}
+            user: ${__YOUR_DATABASE_USER__}
+            password: ${__YOUR_DATABASE_PASSWORD__}
+            connectionLimit: ${__YOUR_CONNECTION_LIMIT__}
+volumes:
+  data-prisma:
+  data-postgres:

@@ -1,18 +1,18 @@
-FROM node:18
+FROM node:16.13.2
 
-RUN yarn global add nodemon
+# Enviroment variable
+ENV WORKDIR=/usr/api/prisma
 
-WORKDIR /app
+# Work directory
+WORKDIR ${WORKDIR}
 
-COPY ./package.json .
+#Copying files to work directory
+COPY . .
 RUN yarn cache clean
 RUN yarn install
-COPY . .
-
-RUN npx prisma generate
+RUN npm install -g nodemon
 
 # Run and expose the server on port 3000
 EXPOSE 3000
 
-# CMD npm start
-CMD [ "nodemon", "build/app.js" ]
+# CMD [ "nodemon", "build/app.js" ]
