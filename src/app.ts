@@ -1,44 +1,37 @@
-import express, {Application, Request, Response} from "express";
-import { PrismaClient } from '@prisma/client';
-import {} from 'dotenv/config';
+import express, {Application, NextFunction, Request, Response} from "express";
+import cors from "cors";
+import HttpException from "./models/http-exception.model";
+import routes from "./routes";
+import {} from "dotenv/config";
 
-const PORT = process.env.__YOUR_PRISMA_SERVER_PORT__ || 3000;
-
+//* EXPRESS AND PRISMA SET UP
 const app: Application = express();
-const prisma = new PrismaClient()
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(routes);
+app.use(express.static('public')); // Serves images
 
-//#######################
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
-});
-
-app.get('/api/users', async (req: Request, res: Response) => {
-  try {
-    // const newUser = await prisma.user.create({
-    //   data: {
-    //     name: 'Alice',
-    //     email: 'alice@prisma.io',
-    //   },
-    // })
-    
-    const users = await prisma.user.findMany()
-
-      return res.json({
-          success: true,
-          data: users
-      });
-  } catch (error: any) {
-      return res.json({
-          success: false,
-          error: error,
-          message: error.message
-      });
+//* ERROR HANDLER
+app.use((err: Error | HttpException, req: Request, res: Response, next: NextFunction) => {
+  // @ts-ignore
+  if (err && err.name === 'UnauthorizedError') {
+    return res.status(401).json({
+      status: 'error',
+      message: 'missing authorization credentials',
+    });
+    // @ts-ignore
+  } else if (err && err.errorCode) {
+    // @ts-ignore
+    res.status(err.errorCode).json(err.message);
+  } else if (err) {
+    res.status(500).json(err.message);
   }
 });
-//#######################
+
+//* SERVER SET UP
+const PORT = process.env.__YOUR_PRISMA_SERVER_PORT__ || 3000;
 
 app.listen(PORT, () => {
   console.log(`Example app listening at http://localhost:${PORT}`);
