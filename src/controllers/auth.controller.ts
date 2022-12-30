@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { auth } from "../utils/auth";
-import { createUser, getCurrentUser, login, updateUser } from '../services/auth.service';
+import { createUser, getUser, login, updateUser } from '../services/auth.service';
 
 const router = Router();
 
@@ -42,9 +42,9 @@ router.post('/users/login', async (req: Request, res: Response, next: NextFuncti
  * @route {GET} /user
  * @returns user User
  */
-router.get('/user', auth.required, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/user', auth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await getCurrentUser(req.body.user?.username);
+    const user = await getUser(req.body.user?.username);
     res.json({ user });
   } catch (error) {
     next(error);
@@ -58,7 +58,7 @@ router.get('/user', auth.required, async (req: Request, res: Response, next: Nex
  * @bodyparam user User
  * @returns user User
  */
-router.put('/user', auth.required, async (req: Request, res: Response, next: NextFunction) => {
+router.put('/user', auth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await updateUser(req.body.user, req.body.user?.username);
     res.json({ user });
