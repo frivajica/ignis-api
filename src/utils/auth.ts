@@ -1,25 +1,18 @@
-const jwt = require("express-jwt");
+import { NextFunction, Request, Response } from 'express';
+import 'dotenv/config';
 
-const getTokenFromHeaders = (req: { headers: { authorization: string } }): string | null => {
-  if (
-    (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Token') ||
-    (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer')
-  ) {
-    return req.headers.authorization.split(' ')[1];
-  }
-  return null;
-};
+import { User } from '../models/user.model';
 
-export const auth = {
-  required: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
-    getToken: getTokenFromHeaders,
-    algorithms: ['HS256'],
-  }),
-  optional: jwt({
-    secret: process.env.JWT_SECRET || 'superSecret',
-    credentialsRequired: false,
-    getToken: getTokenFromHeaders,
-    algorithms: ['HS256'],
-  }),
+const jwt = require('jsonwebtoken');
+
+export const auth = (req: Request, res: Response, next: NextFunction) => {
+  const bearerHeader = req.headers?.authorization;
+  if (!bearerHeader) return res.sendStatus(403);
+
+  //If token exists, extract and verify it.
+
+  jwt.verify(bearerHeader, process.env.JWT_SECRET || 'superSecret', (error: unknown) => {
+    if (error) return res.sendStatus(403);
+    next();
+  });
 };

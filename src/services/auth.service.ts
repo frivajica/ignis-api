@@ -125,7 +125,7 @@ export const login = async (userPayload: any) => {
   });
 };
 
-export const getCurrentUser = async (username: string) => {
+export const getUser = async (username: string) => {
   const user = (await prisma.user.findUnique({
     where: {
       username,
