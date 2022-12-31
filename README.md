@@ -1,7 +1,6 @@
 # ignis-api
 API for ignis.
 
-
 ## Development
 ### To start a development instance:
 1. Set your environment variables.
@@ -19,5 +18,7 @@ API for ignis.
 	- `__YOUR_DATABASE_NAME__`
 	- `DATABASE_URL`
 	- `JWT_SECRET`
-2. Start the database by running `docker-compose up -d`.
+2. Start the database by running `yarn compose`.
 3. Start the server by running `yarn dev`.
+
+Note: You can also run `yarn compose-clean` to reset the docker-compose config.
